@@ -66,7 +66,7 @@ func getMonthCalendar(city string, country string, offsets string, month time.Mo
 
 	var monthlyCalendarResp models.MonthlyAdhanCalenderResponse
 	if err := json.NewDecoder(resp.Body).Decode(&monthlyCalendarResp); err != nil {
-		log.Fatalf("Failed to decode URL response")
+		log.Fatalf("Failed to decode URL response, incorrect struct formatting and/or field type(s)")
 	}
 
 	// Remove non-main adhans
