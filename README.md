@@ -6,21 +6,21 @@ The prayer alarm binary will run the adhan prayer call (audio) based on prayer t
 
 By default, the prayer call timings are set for:
 
-- city = `auckland`
-- country = `new zealand`
+- city = `Auckland`
+- country = `NewZealand`
 
 ## How it works
 
-Prayer timings are retrieved on a monthly basis (starting with current month).
-The prayer calls (audio) is played at the exact prayer times - for specified location.
+Prayer timings are retrieved on a monthly basis (starting with current month by defaultt).
+The prayer call (audio) is played at the respective prayer time - for specified location.
 
 ### Config overrides
 
 #### Prayer time offsets
 
 Offsetting prayer call times is also supported. Prayer call's can be offset by a specified number of minutes by providing an optional **offsets** flag when running the binary.  
-For example, to respectively offset the _Maghrib_ and _Isha_ prayer calls to run 5 mins later and 3 mins earlier, the binary can be run with the following flag: **-offsets "0 0 0 5 -3"**  
-By default, offsets for all prayer times are set to **0**.
+For example, to respectively offset the _Maghrib_ and _Isha_ prayer calls to run 5 mins later and 3 mins earlier, the binary can be run with the following flag: **-offsets "0,0,0,5,-3"**  
+By default, offsets for all prayer times are set to **0**; i.e. **0,0,0,0,0**.
 
 ## Development
 
@@ -42,25 +42,25 @@ By default, offsets for all prayer times are set to **0**.
 - In foreground
 
   ```sh
-  ./prayeralarm-go
+  ./prayeralarm
   ```
 
 - Run with overrides - optional city, country and offset flags
 
   ```sh
-  ./prayeralarm-go -city auckland -country "new zealand" -offsets "5 0 -5 -10 0"
+  ./prayeralarm -city auckland -country NewZealand -offsets "5,0,-5,-10,0"
   ```
 
 - In background with log file
   
   ```sh
-  nohup ./prayeralarm-go > adhan.log &
+  nohup ./prayeralarm > adhan.log &
   ```
 
   - Kill background process
   
     ```sh
-    kill $(ps -ef | grep prayeralarm-go| cut -f4 -d" " | head -1)
+    kill $(ps -ef | grep prayeralarm| cut -f4 -d" " | head -1)
     ```
 
 ## Dependencies
@@ -79,7 +79,6 @@ By default, offsets for all prayer times are set to **0**.
 - [ ] compare omx player sound with golang based sound
 - [ ] view adhaan API
 - [ ] create relevant JSON struct(s) - can use JSON converter plugin
-- [ ] use jsonschema to verify API
 - [ ] gracefully handle timezones
 - [ ] use config file (.env) and flag options for custom timing overrides
 
