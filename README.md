@@ -40,7 +40,7 @@ By default, offsets for all prayer times are set to **0**; i.e. **0,0,0,0,0**.
 #### Build binary
 
   ```sh
-  CGO_CPPFLAGS='-Wno-error -Wno-nullability-completeness -Wno-expansion-to-defined -Wbuiltin-requires-header' CGO_ENABLED=1 go build
+  CGO_ENABLED=1 go build
   ```
 
 #### Run binary
@@ -95,10 +95,3 @@ By default, offsets for all prayer times are set to **0**; i.e. **0,0,0,0,0**.
 
 - [ ] A web-ui to view prayer calendar - for current day and month
 - [ ] Ability to toggle on-off prayer call
-
-## File conversions
-
-`.mp3` files converted to `.wav` files using [ffmpeg]
-
-<!-- Imsak,Fajr,Sunrise,Dhuhr,Asr,Maghrib,Sunset,Isha,Midnight -->
-curl 'http://api.aladhan.com/v1/calendarByCity?city=Auckland&country=NewZealand&method=3&month=12&year=2020&tune=0,0,0,0,0,0,0,0'
