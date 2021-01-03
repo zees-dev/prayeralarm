@@ -2,7 +2,7 @@
 
 A cross-platform single binary islamic prayer alarm.
 
-The prayer alarm binary will run the adhan prayer call (audio) based on prayer timings retrieved from the [Adhan API](https://aladhan.com/prayer-times-api) for a specified location.
+The prayer alarm binary will run the adhan prayer call (audio) based on prayer timings retrieved from the [Adhan API](https://aladhan.com/prayer-times-api) - for a specified location.
 
 By default, the prayer call timings are set for:
 
@@ -12,9 +12,15 @@ By default, the prayer call timings are set for:
 ## How it works
 
 Prayer timings are retrieved on a monthly basis (starting with current month by defaultt).
-The prayer call (audio) is played at the respective prayer time - for specified location.
+Prayer calls (adhan audio) is played at the respective prayer times.
 
 ### Config overrides
+
+- `city`
+- `country`
+- `offsets` - more info below
+- `year`
+- `month` - numerical value between 1 and 12 (inclusive)
 
 #### Prayer time offsets
 
@@ -28,6 +34,7 @@ By default, offsets for all prayer times are set to **0**; i.e. **0,0,0,0,0**.
 
 - Golang (developed on v1.13)
 - Pre-requsites for sound player dependency [Oto](https://github.com/hajimehoshi/oto) - based on OS
+  - `CGO_ENABLED=1` - the project uses CGO (required by Oto dependency)
 
 ### Steps
 
@@ -57,7 +64,7 @@ By default, offsets for all prayer times are set to **0**; i.e. **0,0,0,0,0**.
   ./prayeralarm -city auckland -country NewZealand -offsets "5,0,-5,-10,0"
   ```
 
-- In background with log file
+- In background (as service) with log file
   
   ```sh
   nohup ./prayeralarm > adhan.log &
@@ -71,7 +78,7 @@ By default, offsets for all prayer times are set to **0**; i.e. **0,0,0,0,0**.
 
 ## Dependencies
 
-- [Oto](https://github.com/hajimehoshi/oto) for cross-platform MP3 playback (playing Adhan audio)
+- [Oto](https://github.com/hajimehoshi/oto) for sound playback (playing Adhan audio)
 - [go-mp3](https://github.com/hajimehoshi/go-mp3) for cross-platform MP3 playback (playing Adhan audio)
 
 ## Licence
