@@ -18,7 +18,10 @@ bench:
 
 docker-up:
 	docker build -t prayeralarm:alpine .
-	docker run --rm -it --name prayeralarm prayeralarm:alpine
+	docker run --rm -it --name prayeralarm \
+		-e PULSE_SERVER=host.docker.internal \
+		-v ~/.config/pulse:/root/.config/pulse \
+		prayeralarm:alpine
 
 docker-down:
 	docker stop prayeralarm
