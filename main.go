@@ -19,12 +19,12 @@ func getTime(timeStr string, location string) time.Time {
 
 	tl, err := time.LoadLocation(location)
 	if err != nil {
-		log.Fatalf("Incorrect location input: %s", location)
+		log.Fatalf(`Incorrect location input: "%s"`, location)
 	}
 
 	t, err := time.ParseInLocation(dateFormat, timeStr, tl)
 	if err != nil {
-		log.Fatalf("Incorrect date-time input: %s", timeStr)
+		log.Fatalf(`Incorrect date-time input: "%s"`, timeStr)
 	}
 	return t
 }
