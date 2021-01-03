@@ -27,14 +27,20 @@ By default, offsets for all prayer times are set to **0**; i.e. **0,0,0,0,0**.
 ### Pre-requisites
 
 - Golang (developed on v1.13)
-- Pre-requsites for sound player dependency [Oto](https://github.com/hajimehoshi/oto - based on OS
+- Pre-requsites for sound player dependency [Oto](https://github.com/hajimehoshi/oto) - based on OS
 
 ### Steps
+
+#### Install dependencies
+
+  ```sh
+  go mod download
+  ```
 
 #### Build binary
 
   ```sh
-  go build
+  CGO_CPPFLAGS='-Wno-error -Wno-nullability-completeness -Wno-expansion-to-defined -Wbuiltin-requires-header' CGO_ENABLED=1 go build
   ```
 
 #### Run binary
@@ -66,7 +72,7 @@ By default, offsets for all prayer times are set to **0**; i.e. **0,0,0,0,0**.
 ## Dependencies
 
 - [Oto](https://github.com/hajimehoshi/oto) for cross-platform MP3 playback (playing Adhan audio)
-- [packr2](https://github.com/gobuffalo/packr/tree/master/v2) for converting adhan audio files (mp3) into bytes which have been committed to source control as a single [file](./internal/mp3/mp3-files.go); this allows us to distribute the generated binary without depending on external adhan audio files on the file system
+- [go-mp3](https://github.com/hajimehoshi/go-mp3) for cross-platform MP3 playback (playing Adhan audio)
 
 ## Licence
 
@@ -74,20 +80,10 @@ By default, offsets for all prayer times are set to **0**; i.e. **0,0,0,0,0**.
 
 ---
 
-## R&D
-
-- [ ] compare omx player sound with golang based sound
-- [ ] view adhaan API
-- [ ] create relevant JSON struct(s) - can use JSON converter plugin
-- [ ] gracefully handle timezones
-- [ ] use config file (.env) and flag options for custom timing overrides
-
----
-
 ## TODO
 
 - [ ] Integration testing
-- [ ] Tagged releases - using semantiv versioning
+- [ ] Tagged releases - using semantic versioning
 - [ ] Cross-platform release binaries
   - [ ] Raspberry Pi release binary
   - [ ] Docker based setup - [example](https://gitlab.com/dev.786zshan/golang-project-bootstrapper)
