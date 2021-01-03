@@ -38,6 +38,8 @@ By default, offsets for all prayer times are set to **0**; i.e. **0,0,0,0,0**.
 
 ### Steps
 
+Use the [Makefile](./Makefile) to test, build and run the project; alternatively manual instructions are defined below.
+
 #### Install dependencies
 
   ```sh
