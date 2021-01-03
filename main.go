@@ -12,10 +12,17 @@ import (
 	"time"
 )
 
-// getTime converts string input to time object
-func getTime(timeStr string) time.Time {
-	dateFormat := "02 Jan 2006 15:04 (NZDT)"
-	t, err := time.ParseInLocation(dateFormat, timeStr, time.Now().Location())
+// getTime converts string input with tz location to time object
+// https://yourbasic.org/golang/format-parse-string-time-date-example/
+func getTime(timeStr string, location string) time.Time {
+	dateFormat := "02 Jan 2006 15:04 (MST)"
+
+	tl, err := time.LoadLocation(location)
+	if err != nil {
+		log.Fatalf("Incorrect location input: %s", location)
+	}
+
+	t, err := time.ParseInLocation(dateFormat, timeStr, tl)
 	if err != nil {
 		log.Fatalf("Incorrect date-time input: %s", timeStr)
 	}
@@ -74,7 +81,7 @@ func executeMonthlyCalendar(monthCalendar MonthlyAdhanCalenderResponse, w io.Wri
 	for _, timings := range monthCalendar.Data {
 		for adhan, timeStr := range timings.Timings {
 			fullTimeStr := fmt.Sprintf("%s %s", timings.Date.Readable, timeStr)
-			adhanTime := getTime(fullTimeStr)
+			adhanTime := getTime(fullTimeStr, timings.Meta.Timezone)
 			if adhanTime.After(currentTime) {
 				adhanTimings = append(adhanTimings, AdhanTime{Type: adhan, Time: adhanTime})
 			}
