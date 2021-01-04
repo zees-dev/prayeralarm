@@ -1,25 +1,23 @@
 # Prayer Alarm
 
-![CI](https://github.com/zees-dev/prayeralarm/workflows/CI/badge.svg)
-![CD](https://github.com/zees-dev/prayeralarm/workflows/CD/badge.svg)
+[![CI](https://github.com/zees-dev/prayeralarm/workflows/CI/badge.svg)](https://github.com/zees-dev/prayeralarm/actions?query=workflow%3ACI)
+[![CD](https://github.com/zees-dev/prayeralarm/workflows/CD/badge.svg)](https://github.com/zees-dev/prayeralarm/actions?query=workflow%3ACD)
 [![Release](https://github.com/zees-dev/prayeralarm/workflows/Release/badge.svg)](https://github.com/zees-dev/prayeralarm/releases)\
 [![Go Report Card](https://goreportcard.com/badge/github.com/zees-dev/prayeralarm)](https://goreportcard.com/report/github.com/zees-dev/prayeralarm)
 
-A cross-platform single binary islamic prayer alarm.
+A cross-platform islamic prayer alarm.
 
-The prayer alarm binary will run the adhan prayer call (audio) based on prayer timings retrieved from the [Adhan API](https://aladhan.com/prayer-times-api) - for a specified location.
+The prayer alarm binary will run the adhan prayer call (audio) based on prayer timings retrieved from the [Adhan API](https://aladhan.com/prayer-times-api).
+
+- Prayer timings are retrieved on a monthly basis (starting with current month by default).
+- Prayer calls (adhan audio) is played at the respective prayer times.
 
 By default, the prayer call timings are set for:
 
 - city = `Auckland`
 - country = `NewZealand`
 
-## How it works
-
-Prayer timings are retrieved on a monthly basis (starting with current month by defaultt).
-Prayer calls (adhan audio) is played at the respective prayer times.
-
-### Config overrides
+## Config overrides
 
 - `city`
 - `country`
@@ -27,7 +25,7 @@ Prayer calls (adhan audio) is played at the respective prayer times.
 - `year`
 - `month` - numerical value between 1 and 12 (inclusive)
 
-#### Prayer time offsets
+### Prayer time offsets
 
 Offsetting prayer call times is also supported. Prayer call's can be offset by a specified number of minutes by providing an optional **offsets** flag when running the binary.  
 For example, to respectively offset the _Maghrib_ and _Isha_ prayer calls to run 5 mins later and 3 mins earlier, the binary can be run with the following flag: **-offsets "0,0,0,5,-3"**  
@@ -37,7 +35,7 @@ By default, offsets for all prayer times are set to **0**; i.e. **0,0,0,0,0**.
 
 ### Pre-requisites
 
-- Golang (developed on v1.13)
+- Golang (developed on v1.15)
 - Pre-requsites for sound player dependency [Oto](https://github.com/hajimehoshi/oto) - based on OS
   - `CGO_ENABLED=1` - the project uses CGO (required by Oto dependency)
 
@@ -96,14 +94,15 @@ kill $(ps -ef | grep prayeralarm| cut -f4 -d" " | head -1)
 
 ## TODO
 
-- [ ] Integration testing
-- [ ] Tagged releases - using semantic versioning
-- [ ] Cross-platform release binaries
+- [x] Integration testing
+- [x] Tagged releases - using semantic versioning
+- [x] Cross-platform release binaries
   - [ ] Raspberry Pi release binary
-  - [ ] Docker based setup - [example](https://gitlab.com/dev.786zshan/golang-project-bootstrapper)
-- [ ] CI pipeline
-- [ ] CD pipeline
-  - [ ] One workflow should release to my Raspberry PI  
+  - [x] Docker based setup - [example](https://gitlab.com/dev.786zshan/golang-project-bootstrapper)
+- [x] CI pipeline
+- [x] Multiplatform release binaries
+- [x] CD pipeline
+  - [ ] One workflow should release to Raspberry PI  
 
 ## Roadmap
 
