@@ -7,7 +7,7 @@ on:
 jobs:
   deploy:
     name: Raspberry PI Deployment
-    runs-on: [self-hosted, golang]
+    runs-on: [self-hosted]
     strategy:
       matrix:
         go-version: [1.15.x]
