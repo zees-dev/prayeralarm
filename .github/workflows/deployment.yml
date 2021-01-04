@@ -30,6 +30,7 @@ jobs:
 
   deploy_binary:
     name: Raspberry PI Deployment
+    needs: upload_binary_artifact
     runs-on: [self-hosted]
     strategy:
       matrix:
