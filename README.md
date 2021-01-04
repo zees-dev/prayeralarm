@@ -1,5 +1,10 @@
 # Prayer Alarm
 
+![CI](https://github.com/zees-dev/prayeralarm/workflows/CI/badge.svg)
+![CD](https://github.com/zees-dev/prayeralarm/workflows/CD/badge.svg)
+[![Release](https://github.com/zees-dev/prayeralarm/workflows/Release/badge.svg)](https://github.com/zees-dev/prayeralarm/releases)\
+[![Go Report Card](https://goreportcard.com/badge/github.com/zees-dev/prayeralarm)](https://goreportcard.com/report/github.com/zees-dev/prayeralarm)
+
 A cross-platform single binary islamic prayer alarm.
 
 The prayer alarm binary will run the adhan prayer call (audio) based on prayer timings retrieved from the [Adhan API](https://aladhan.com/prayer-times-api) - for a specified location.
@@ -42,41 +47,41 @@ Use the [Makefile](./Makefile) to test, build and run the project; alternatively
 
 #### Install dependencies
 
-  ```sh
-  go mod download
-  ```
+```sh
+go mod download
+```
 
 #### Build binary
 
-  ```sh
-  CGO_ENABLED=1 go build
-  ```
+```sh
+CGO_ENABLED=1 go build
+```
 
-#### Run binary
+#### Run binary - examples
 
-- In foreground
+**In foreground:**
 
-  ```sh
-  ./prayeralarm
-  ```
+```sh
+./prayeralarm
+```
 
 - Run with overrides - optional city, country and offset flags
 
-  ```sh
-  ./prayeralarm -city auckland -country NewZealand -offsets "5,0,-5,-10,0"
-  ```
+```sh
+./prayeralarm -city Auckland -country NewZealand -offsets "5,0,-5,-10,0"
+```
 
-- In background (as service) with log file
+**In background (as service) - with log file:**
   
-  ```sh
-  nohup ./prayeralarm > adhan.log &
-  ```
+```sh
+nohup ./prayeralarm > adhan.log &
+```
 
-  - Kill background process
+- Kill background process
   
-    ```sh
-    kill $(ps -ef | grep prayeralarm| cut -f4 -d" " | head -1)
-    ```
+```sh
+kill $(ps -ef | grep prayeralarm| cut -f4 -d" " | head -1)
+```
 
 ## Dependencies
 
