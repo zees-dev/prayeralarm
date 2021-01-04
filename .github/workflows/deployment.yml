@@ -20,8 +20,8 @@ jobs:
           go-version: ${{ matrix.go-version }}
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Build for raspberry pi
-        run: GOOS=linux GOARCH=arm GOARM=5 CGO_ENABLED=1 go build -v .
+      - name: Cross-compile for raspberry pi
+        run: CC=arm-linux-gnueabihf-gcc GOOS=linux GOARCH=arm GOARM=5 CGO_ENABLED=1 go build -v .
       - name: Upload binary
         uses: actions/upload-artifact@v2
         with:
