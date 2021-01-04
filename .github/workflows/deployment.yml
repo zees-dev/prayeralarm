@@ -20,7 +20,7 @@ jobs:
           go-version: ${{ matrix.go-version }}
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Cross-compile for raspberry pi
+      - name: Compile for machine
         run: CGO_ENABLED=1 go build -v .
       - name: Test
         run: ls -la  /tmp
