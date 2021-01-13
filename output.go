@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/hajimehoshi/go-mp3"
 	"github.com/hajimehoshi/oto"
@@ -30,10 +32,13 @@ func (op omxPlayer) Write(p []byte) (n int, err error) {
 	default:
 		filename = "mp3/adhan-turkish.mp3"
 	}
-
 	// fajrAdhan = 'omxplayer -o local --vol 1000 mp3/adhan-fajr.mp3 > /dev/null 2>&1'
 	// otherAdhan = 'omxplayer -o local --vol 1000 mp3/adhan-turkish.mp3 > /dev/null 2>&1'
-	_, err = exec.Command("omxplayer", "-o", "local", "--vol", "1000", filename, ">", "/dev/null", "2>&1").Output()
+	commandStr := strings.Split(fmt.Sprintf("omxplayer -o local --vol 1000 %s > /dev/null 2>&1", filename), " ")
+
+	log.Println(fmt.Sprintf("executing command: %v", commandStr))
+
+	_, err = exec.Command(commandStr[0], commandStr[1:]...).Output()
 	if err != nil {
 		return 0, err
 	}
