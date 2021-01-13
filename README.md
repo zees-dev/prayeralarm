@@ -85,6 +85,9 @@ kill $(ps -ef | grep prayeralarm| cut -f4 -d" " | head -1)
 
 - [Oto](https://github.com/hajimehoshi/oto) for sound playback (playing Adhan audio)
 - [go-mp3](https://github.com/hajimehoshi/go-mp3) for cross-platform MP3 playback (playing Adhan audio)
+- pulseaudio server on host (if running prayeralarm in container)
+  - run pulseaudio server: `pulseaudio --load=module-native-protocol-tcp --exit-idle-time=-1 --daemon`
+  - stop pulseaudio server: `pulseaudio --kill`
 
 ## Licence
 
