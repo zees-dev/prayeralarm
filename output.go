@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 
 	"github.com/hajimehoshi/go-mp3"
 	"github.com/hajimehoshi/oto"
@@ -15,6 +16,28 @@ type stdOut struct{}
 func (so stdOut) Write(p []byte) (n int, err error) {
 	adhanType := string(p)
 	fmt.Println(adhanType)
+	return len(p), nil
+}
+
+// omxplayer binary (must be present in OS)
+type omxPlayer struct{}
+
+func (op omxPlayer) Write(p []byte) (n int, err error) {
+	var filename string
+	switch string(p) {
+	case "Fajr":
+		filename = "mp3/adhan-fajr.mp3"
+	default:
+		filename = "mp3/adhan-turkish.mp3"
+	}
+
+	// fajrAdhan = 'omxplayer -o local --vol 1000 mp3/adhan-fajr.mp3 > /dev/null 2>&1'
+	// otherAdhan = 'omxplayer -o local --vol 1000 mp3/adhan-turkish.mp3 > /dev/null 2>&1'
+	_, err = exec.Command("omxplayer", "-o", "local", "--vol", "1000", filename, ">", "/dev/null", "2>&1").Output()
+	if err != nil {
+		return 0, err
+	}
+
 	return len(p), nil
 }
 

@@ -126,7 +126,7 @@ func main() {
 		year, month = *yearPtr, time.Month(*monthPtr)
 
 		monthCalendar := getMonthCalendar(*cityPtr, *countryPtr, *offsetPtr, month, year)
-		executeMonthlyCalendar(monthCalendar, mp3Player{})
+		executeMonthlyCalendar(monthCalendar, omxPlayer{})
 
 		year, month, _ = time.Now().AddDate(0, 1, 0).Date()
 	}
