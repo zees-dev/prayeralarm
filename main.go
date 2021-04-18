@@ -100,6 +100,9 @@ func executeMonthlyCalendar(monthCalendar MonthlyAdhanCalenderResponse, w io.Wri
 	for _, adhanTiming := range adhanTimings {
 		timeTillNextAdhan := adhanTiming.Time.Sub(time.Now())
 		log.Printf("Waiting %s for %s adhan...", timeTillNextAdhan, adhanTiming.Type)
+		if _, err := w.Write([]byte(adhanTiming.Type)); err != nil {
+			log.Fatalln(err)
+		}
 
 		time.Sleep(timeTillNextAdhan)
 
