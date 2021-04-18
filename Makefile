@@ -15,9 +15,11 @@ test:
 
 docker-up:
 	docker build -t prayeralarm:alpine .
-	docker run --rm -it --name prayeralarm \
+	docker run --rm -it \
+		--name prayeralarm \
 		-e PULSE_SERVER=host.docker.internal \
 		-v ~/.config/pulse:/root/.config/pulse \
+		--device /dev/snd \
 		prayeralarm:alpine
 
 docker-down:
