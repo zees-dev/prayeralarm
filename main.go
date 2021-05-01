@@ -98,7 +98,7 @@ func executeMonthlyCalendar(monthCalendar MonthlyAdhanCalenderResponse, w io.Wri
 
 	// Play the adhan at the correct times - from current time
 	for _, adhanTiming := range adhanTimings {
-		timeTillNextAdhan := adhanTiming.Time.Sub(time.Now())
+		timeTillNextAdhan := time.Until(time.Now())
 		log.Printf("Waiting %s for %s adhan...", timeTillNextAdhan, adhanTiming.Type)
 		if _, err := w.Write([]byte(adhanTiming.Type)); err != nil {
 			log.Fatalln(err)
@@ -120,14 +120,12 @@ func main() {
 	cityPtr := flag.String("city", "Auckland", "city for which adhan timings are to be retrieved")
 	countryPtr := flag.String("country", "NewZealand", "country for which adhan timings are to be retrieved")
 	offsetPtr := flag.String("offsets", "0,0,0,0,0", "comma seperated string of adhan offsets (in mins) for the 5 daily adhans (fajr, dhuhr, asr, maghrib, isha)")
-	yearPtr := flag.Int("year", year, "year of adhan playback")
-	monthPtr := flag.Int("month", int(month), "month of adhan playback")
+	year = *flag.Int("year", year, "year of adhan playback")
+	month = time.Month(*flag.Int("month", int(month), "month of adhan playback"))
 	flag.Parse()
 
-	log.Printf("Flags - City: %s, Country: %s, Offsets: %s, Year: %d, Month: %d", *cityPtr, *countryPtr, *offsetPtr, *yearPtr, *monthPtr)
+	log.Printf("Flags - City: %s, Country: %s, Offsets: %s, Year: %d, Month: %d", *cityPtr, *countryPtr, *offsetPtr, year, month)
 	for {
-		year, month = *yearPtr, time.Month(*monthPtr)
-
 		monthCalendar := getMonthCalendar(*cityPtr, *countryPtr, *offsetPtr, month, year)
 		executeMonthlyCalendar(monthCalendar, omxPlayer{})
 
