@@ -24,6 +24,10 @@ func (so stdOut) Write(p []byte) (n int, err error) {
 // omxplayer binary (must be present in OS)
 type omxPlayer struct{}
 
+func NewOmxPlayer() omxPlayer {
+	return omxPlayer{}
+}
+
 func (op omxPlayer) Write(p []byte) (n int, err error) {
 	var filename string
 	switch string(p) {
@@ -48,6 +52,10 @@ func (op omxPlayer) Write(p []byte) (n int, err error) {
 
 // mp3Player is primarily used to implement interface output mp3 to audio output device
 type mp3Player struct{}
+
+func NewMp3Player() mp3Player {
+	return mp3Player{}
+}
 
 // Write outputs the reads the mp3 adhan file (passed in as filename) and outputs mp3 to audio device using `oto` and `go-mp3`
 func (mp mp3Player) Write(p []byte) (n int, err error) {

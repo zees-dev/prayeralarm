@@ -127,9 +127,11 @@ func main() {
 	year, month = *yearPtr, time.Month(*monthPtr)
 	log.Printf("Flags - City: %s, Country: %s, Offsets: %s, Year: %d, Month: %d", *cityPtr, *countryPtr, *offsetPtr, year, month)
 
+	output := NewOmxPlayer()
+
 	for {
 		monthCalendar := getMonthCalendar(*cityPtr, *countryPtr, *offsetPtr, month, year)
-		executeMonthlyCalendar(monthCalendar, omxPlayer{})
+		executeMonthlyCalendar(monthCalendar, output)
 
 		year, month, _ = time.Now().AddDate(0, 1, 0).Date()
 	}
