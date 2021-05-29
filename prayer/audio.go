@@ -1,4 +1,4 @@
-package main
+package prayer
 
 import (
 	"fmt"
@@ -10,15 +10,24 @@ import (
 
 	"github.com/hajimehoshi/go-mp3"
 	"github.com/hajimehoshi/oto"
+	"github.com/zees-dev/prayeralarm/aladhan"
 )
 
+type Player interface {
+	Play(adhan aladhan.Adhan) error
+}
+
 // Default stdout for testing purposes
+// TODO replicate similar functionality to http defaultservemux
 type stdOut struct{}
 
-func (so stdOut) Write(p []byte) (n int, err error) {
-	adhanType := string(p)
-	fmt.Println(adhanType)
-	return len(p), nil
+func NewStdOutPlayer() stdOut {
+	return stdOut{}
+}
+
+func (so stdOut) Play(adhan aladhan.Adhan) error {
+	fmt.Println(adhan)
+	return nil
 }
 
 // omxplayer binary (must be present in OS)
@@ -28,9 +37,10 @@ func NewOmxPlayer() omxPlayer {
 	return omxPlayer{}
 }
 
-func (op omxPlayer) Write(p []byte) (n int, err error) {
+// Play plays an audio via omxplayer cli tool
+func (op omxPlayer) Play(adhan aladhan.Adhan) error {
 	var filename string
-	switch string(p) {
+	switch adhan {
 	case "Fajr":
 		filename = "mp3/adhan-fajr.mp3"
 	default:
@@ -42,12 +52,12 @@ func (op omxPlayer) Write(p []byte) (n int, err error) {
 
 	log.Println(fmt.Sprintf("executing command: %v", commandStr))
 
-	_, err = exec.Command(commandStr[0], commandStr[1:]...).Output()
+	_, err := exec.Command(commandStr[0], commandStr[1:]...).Output()
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	return len(p), nil
+	return nil
 }
 
 // mp3Player is primarily used to implement interface output mp3 to audio output device
@@ -57,10 +67,10 @@ func NewMp3Player() mp3Player {
 	return mp3Player{}
 }
 
-// Write outputs the reads the mp3 adhan file (passed in as filename) and outputs mp3 to audio device using `oto` and `go-mp3`
-func (mp mp3Player) Write(p []byte) (n int, err error) {
+// Play reads the mp3 adhan file ) and outputs mp3 to audio device using `oto` and `go-mp3`
+func (mp mp3Player) Play(adhan aladhan.Adhan) error {
 	var filename string
-	switch string(p) {
+	switch adhan {
 	case "Fajr":
 		filename = "mp3/adhan-fajr.mp3"
 	default:
@@ -69,18 +79,18 @@ func (mp mp3Player) Write(p []byte) (n int, err error) {
 
 	adhanF, err := os.Open(filename)
 	if err != nil {
-		return 0, err
+		return err
 	}
 	defer adhanF.Close()
 
 	decoder, err := mp3.NewDecoder(adhanF)
 	if err != nil {
-		return 0, err
+		return err
 	}
 
 	c, err := oto.NewContext(decoder.SampleRate(), 2, 2, 8192)
 	if err != nil {
-		return 0, err
+		return err
 	}
 	defer c.Close()
 
@@ -89,7 +99,7 @@ func (mp mp3Player) Write(p []byte) (n int, err error) {
 
 	fmt.Printf("playing bytes: %d[bytes]\n", decoder.Length())
 	if _, err := io.Copy(player, decoder); err != nil {
-		return 0, err
+		return err
 	}
-	return len(p), nil
+	return nil
 }

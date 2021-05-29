@@ -4,7 +4,7 @@
 //
 //   "Set quicktype target language"
 
-package main
+package aladhan
 
 import "time"
 
