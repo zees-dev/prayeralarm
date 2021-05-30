@@ -20,8 +20,6 @@ func loggedRouter(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		next.ServeHTTP(w, r)
-		a := w.Header()
-		log.Println(a)
 		log.Printf(
 			"method=%s path=%s duration=%dms\n",
 			r.Method,
@@ -45,7 +43,7 @@ func NewHandler(prayerSvc *prayer.Service) handler {
 
 	r.HandleFunc("/api/timings", h.timingsHandler).Methods(http.MethodGet)
 
-	r.HandleFunc("/api/timings/{index}", h.timingsUpdateHandler).Methods(http.MethodPut)
+	r.HandleFunc("/api/timings/toggle/{index}", h.timingsUpdateHandler).Methods(http.MethodPost)
 
 	r.HandleFunc("/api/timings/off", h.timingsTurnOffHandler).Methods(http.MethodPost)
 
@@ -64,19 +62,13 @@ func (h handler) timingsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("Content-Type") == "text/html" {
 		w.Header().Set("Content-Type", "text/html")
 
-		h.prayerSvc.DisplayAdhanTimings(w)
-		return
-	}
-
-	adhanMap, err := GenerateAdhanExecutionMap(h.prayerSvc.AdhanExecutions, h.prayerSvc.Timings)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		h.prayerSvc.DisplayPrayerTimings(w)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(adhanMap)
+	json.NewEncoder(w).Encode(h.prayerSvc.Prayers)
 }
 
 func (h handler) timingsUpdateHandler(w http.ResponseWriter, r *http.Request) {
@@ -93,7 +85,7 @@ func (h handler) timingsUpdateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if intIndex > len(h.prayerSvc.AdhanExecutions) {
+	if intIndex > len(h.prayerSvc.Prayers) {
 		http.Error(w, "invalid index value provided", http.StatusBadRequest)
 		return
 	}

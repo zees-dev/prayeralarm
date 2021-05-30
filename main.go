@@ -26,11 +26,10 @@ func runPrayerAlarm(flags cliFlags, adhanService *prayer.Service) {
 	year, month := flags.year, flags.month
 	for {
 		monthCalendar := aladhan.GetMonthCalendar(flags.city, flags.country, flags.offset, month, year)
-		adhanTimings := aladhan.ExtractAdhanTimings(monthCalendar)
 
-		adhanService.SetAdhanTimings(adhanTimings)
-		adhanService.DisplayAdhanTimings(os.Stdout)
-		adhanService.ExecuteAdhan()
+		adhanService.GeneratePrayers(monthCalendar)
+		adhanService.DisplayPrayerTimings(os.Stdout)
+		adhanService.ExecutePrayers()
 
 		year, month, _ = time.Now().AddDate(0, 1, 0).Date()
 	}
