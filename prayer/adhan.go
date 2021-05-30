@@ -11,7 +11,7 @@ import (
 	"github.com/zees-dev/prayeralarm/aladhan"
 )
 
-type service struct {
+type Service struct {
 	mutex           sync.RWMutex
 	timings         []aladhan.AdhanTime
 	adhanExecutions []bool
@@ -19,12 +19,12 @@ type service struct {
 }
 
 // NewService returns new adhan service that utilizes player to output adhan audio
-func NewService(player Player) *service {
-	return &service{player: player}
+func NewService(player Player) *Service {
+	return &Service{player: player}
 }
 
 // SetAdhanTimings sets the adhan timings and the respective executions to true for the month
-func (svc *service) SetAdhanTimings(timings []aladhan.AdhanTime) {
+func (svc *Service) SetAdhanTimings(timings []aladhan.AdhanTime) {
 	svc.mutex.Lock()
 	defer svc.mutex.Unlock()
 
@@ -39,7 +39,7 @@ func (svc *service) SetAdhanTimings(timings []aladhan.AdhanTime) {
 
 // DisplayCalendar renders upcoming calendar in ASCII table
 // https://github.com/olekukonko/tablewriter#example-6----identical-cells-merging
-func (svc *service) DisplayAdhanTimings(writer io.Writer) {
+func (svc *Service) DisplayAdhanTimings(writer io.Writer) {
 	table := tablewriter.NewWriter(writer)
 	table.SetHeader([]string{"Date", "Adhan", "Time"})
 	table.SetAutoMergeCells(true)
@@ -53,7 +53,7 @@ func (svc *service) DisplayAdhanTimings(writer io.Writer) {
 }
 
 // ExecuteAdhan plays adhan based on adhan timings if execution of the respective adhan is set to true
-func (svc *service) ExecuteAdhan() {
+func (svc *Service) ExecuteAdhan() {
 	// Play the adhan at the correct times - from current time
 	for i, adhanTiming := range svc.timings {
 		timeTillNextAdhan := time.Until(adhanTiming.Time)
@@ -74,7 +74,7 @@ func (svc *service) ExecuteAdhan() {
 }
 
 // TurnOffAllAdhan sets adhan executions for all adhan timings of the month to be muted
-func (svc *service) TurnOffAllAdhan() {
+func (svc *Service) TurnOffAllAdhan() {
 	svc.mutex.Lock()
 	defer svc.mutex.Unlock()
 
@@ -84,7 +84,7 @@ func (svc *service) TurnOffAllAdhan() {
 }
 
 // TurnOnAllAdhan sets adhan executions for all adhan timings of the month to be played
-func (svc *service) TurnOnAllAdhan() {
+func (svc *Service) TurnOnAllAdhan() {
 	svc.mutex.Lock()
 	defer svc.mutex.Unlock()
 
@@ -94,7 +94,7 @@ func (svc *service) TurnOnAllAdhan() {
 }
 
 // ToggleAdhan toggles a single adhan timings execution
-func (svc *service) ToggleAdhan(index uint8) {
+func (svc *Service) ToggleAdhan(index uint8) {
 	svc.mutex.Lock()
 	defer svc.mutex.Unlock()
 
