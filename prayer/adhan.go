@@ -59,7 +59,7 @@ func (svc *service) ExecuteAdhan() {
 		timeTillNextAdhan := time.Until(adhanTiming.Time)
 		log.Printf("Waiting %s for %s adhan...", timeTillNextAdhan, adhanTiming.Type)
 
-		// time.Sleep(timeTillNextAdhan)
+		time.Sleep(timeTillNextAdhan)
 
 		// Only play adhan if its set to execute
 		if svc.adhanExecutions[i] {
