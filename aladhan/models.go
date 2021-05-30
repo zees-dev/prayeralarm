@@ -45,6 +45,6 @@ const (
 )
 
 type AdhanTime struct {
-	Type Adhan
-	Time time.Time
+	Type Adhan     `json:"type"`
+	Time time.Time `json:"time"`
 }
