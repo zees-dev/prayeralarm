@@ -13,9 +13,9 @@ import (
 
 type Service struct {
 	mutex           sync.RWMutex
-	timings         []aladhan.AdhanTime
-	adhanExecutions []bool
 	player          Player
+	Timings         []aladhan.AdhanTime
+	AdhanExecutions []bool
 }
 
 // NewService returns new adhan service that utilizes player to output adhan audio
@@ -29,12 +29,12 @@ func (svc *Service) SetAdhanTimings(timings []aladhan.AdhanTime) {
 	defer svc.mutex.Unlock()
 
 	// set adhan executions to be true
-	svc.adhanExecutions = make([]bool, len(timings))
+	svc.AdhanExecutions = make([]bool, len(timings))
 	for i := range timings {
-		svc.adhanExecutions[i] = true
+		svc.AdhanExecutions[i] = true
 	}
 
-	svc.timings = timings
+	svc.Timings = timings
 }
 
 // DisplayCalendar renders upcoming calendar in ASCII table
@@ -44,7 +44,7 @@ func (svc *Service) DisplayAdhanTimings(writer io.Writer) {
 	table.SetHeader([]string{"Date", "Adhan", "Time"})
 	table.SetAutoMergeCells(true)
 	table.SetRowLine(true)
-	for _, adhan := range svc.timings {
+	for _, adhan := range svc.Timings {
 		year, month, day := adhan.Time.Date()
 		dateStr := fmt.Sprintf("%s %d-%s-%d", adhan.Time.Weekday(), day, month, year)
 		table.Append([]string{dateStr, string(adhan.Type), adhan.Time.Format("03:04:05 PM")})
@@ -55,14 +55,14 @@ func (svc *Service) DisplayAdhanTimings(writer io.Writer) {
 // ExecuteAdhan plays adhan based on adhan timings if execution of the respective adhan is set to true
 func (svc *Service) ExecuteAdhan() {
 	// Play the adhan at the correct times - from current time
-	for i, adhanTiming := range svc.timings {
+	for i, adhanTiming := range svc.Timings {
 		timeTillNextAdhan := time.Until(adhanTiming.Time)
 		log.Printf("Waiting %s for %s adhan...", timeTillNextAdhan, adhanTiming.Type)
 
 		time.Sleep(timeTillNextAdhan)
 
 		// Only play adhan if its set to execute
-		if svc.adhanExecutions[i] {
+		if svc.AdhanExecutions[i] {
 			log.Printf("Playing %s adhan at %s...", adhanTiming.Type, adhanTiming.Time)
 			if err := svc.player.Play(adhanTiming.Type); err != nil {
 				log.Fatalln(err)
@@ -78,8 +78,8 @@ func (svc *Service) TurnOffAllAdhan() {
 	svc.mutex.Lock()
 	defer svc.mutex.Unlock()
 
-	for i := range svc.adhanExecutions {
-		svc.adhanExecutions[i] = false
+	for i := range svc.AdhanExecutions {
+		svc.AdhanExecutions[i] = false
 	}
 }
 
@@ -88,8 +88,8 @@ func (svc *Service) TurnOnAllAdhan() {
 	svc.mutex.Lock()
 	defer svc.mutex.Unlock()
 
-	for i := range svc.adhanExecutions {
-		svc.adhanExecutions[i] = true
+	for i := range svc.AdhanExecutions {
+		svc.AdhanExecutions[i] = true
 	}
 }
 
@@ -98,5 +98,5 @@ func (svc *Service) ToggleAdhan(index uint8) {
 	svc.mutex.Lock()
 	defer svc.mutex.Unlock()
 
-	svc.adhanExecutions[index] = !svc.adhanExecutions[index]
+	svc.AdhanExecutions[index] = !svc.AdhanExecutions[index]
 }
