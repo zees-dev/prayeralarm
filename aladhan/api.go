@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"sort"
 	"strings"
 	"time"
 )
@@ -52,45 +51,4 @@ func GetMonthCalendar(city string, country string, offsets string, month time.Mo
 	}
 
 	return monthlyCalendarResp
-}
-
-// ExtractAdhanTimings extracts the monthly adhan timings from the calendar api response
-func ExtractAdhanTimings(monthCalendar MonthlyAdhanCalenderResponse) []AdhanTime {
-	adhanTimings := []AdhanTime{}
-
-	// Get all adhan timings after current time for remaining days of the month
-	currentTime := time.Now()
-	for _, timings := range monthCalendar.Data {
-		for adhan, timeStr := range timings.Timings {
-			fullTimeStr := fmt.Sprintf("%s %s", timings.Date.Readable, timeStr)
-			adhanTime := getTime(fullTimeStr, timings.Meta.Timezone)
-			if adhanTime.After(currentTime) {
-				adhanTimings = append(adhanTimings, AdhanTime{Type: adhan, Time: adhanTime})
-			}
-		}
-	}
-
-	// Sort upcoming adhans by time
-	sort.Slice(adhanTimings[:], func(i, j int) bool {
-		return adhanTimings[i].Time.Before(adhanTimings[j].Time)
-	})
-
-	return adhanTimings
-}
-
-// getTime converts string input with tz location to time object
-// https://yourbasic.org/golang/format-parse-string-time-date-example/
-func getTime(timeStr string, location string) time.Time {
-	dateFormat := "02 Jan 2006 15:04 (MST)"
-
-	tl, err := time.LoadLocation(location)
-	if err != nil {
-		log.Fatalf(`Incorrect location input: "%s"`, location)
-	}
-
-	t, err := time.ParseInLocation(dateFormat, timeStr, tl)
-	if err != nil {
-		log.Fatalf(`Incorrect date-time input: "%s"`, timeStr)
-	}
-	return t
 }

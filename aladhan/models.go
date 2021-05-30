@@ -6,8 +6,6 @@
 
 package aladhan
 
-import "time"
-
 type MonthlyAdhanCalenderResponse struct {
 	Code   int64  `json:"code"`
 	Status string `json:"status"`
@@ -43,8 +41,3 @@ const (
 	Maghrib Adhan = "Maghrib"
 	Isha    Adhan = "Isha"
 )
-
-type AdhanTime struct {
-	Type Adhan
-	Time time.Time
-}
