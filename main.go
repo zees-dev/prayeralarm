@@ -2,13 +2,9 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
-	"net/http"
-	"os"
 	"time"
 
-	"github.com/zees-dev/prayeralarm/aladhan"
 	server "github.com/zees-dev/prayeralarm/http"
 	"github.com/zees-dev/prayeralarm/prayer"
 )
@@ -22,19 +18,6 @@ type cliFlags struct {
 	port    uint
 }
 
-func runPrayerAlarm(flags cliFlags, adhanService *prayer.Service) {
-	year, month := flags.year, flags.month
-	for {
-		monthCalendar := aladhan.GetMonthCalendar(flags.city, flags.country, flags.offset, month, year)
-
-		adhanService.GeneratePrayers(monthCalendar)
-		adhanService.DisplayPrayerTimings(os.Stdout)
-		adhanService.ExecutePrayers()
-
-		year, month, _ = time.Now().AddDate(0, 1, 0).Date()
-	}
-}
-
 func main() {
 	year, month, _ := time.Now().Date()
 
@@ -43,7 +26,7 @@ func main() {
 	offsetPtr := flag.String("offsets", "0,0,0,0,0", "comma seperated string of adhan offsets (in mins) for the 5 daily adhans (fajr, dhuhr, asr, maghrib, isha)")
 	yearPtr := flag.Int("year", year, "year of adhan playback")
 	monthPtr := flag.Int("month", int(month), "month of adhan playback")
-	portPtr := flag.Uint("port", 8000, "server port")
+	portPtr := flag.Uint("port", 8080, "server port")
 
 	flag.Parse()
 
@@ -68,17 +51,8 @@ func main() {
 
 	player := prayer.NewStdOutPlayer()
 	adhanService := prayer.NewService(player)
+	adhanService.InitialisePrayeralarm(cliFlags.year, cliFlags.month, cliFlags.city, cliFlags.country, cliFlags.offset)
 
-	go runPrayerAlarm(cliFlags, adhanService)
-
-	handler := server.NewHandler(adhanService)
-	server := &http.Server{
-		Handler:      handler.Router,
-		Addr:         fmt.Sprintf("127.0.0.1:%d", *portPtr),
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
-	}
-
-	log.Printf("Running prayeralarm server on port %d...", cliFlags.port)
-	log.Fatal(server.ListenAndServe())
+	server := server.NewServer(adhanService)
+	server.Run(*portPtr)
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"sort"
 	"sync"
 	"time"
@@ -26,11 +27,33 @@ type Service struct {
 
 // NewService returns new adhan service that utilizes player to output adhan audio
 func NewService(player Player) *Service {
-	return &Service{player: player}
+	return &Service{
+		player:  player,
+		Prayers: []Prayer{},
+	}
 }
 
-// GeneratePrayers extracts the monthly adhan timings from the calendar api response
-func (svc *Service) GeneratePrayers(monthCalendar aladhan.MonthlyAdhanCalenderResponse) {
+// InitialisePrayeralarm will initialise the service to run monthly prayer calls.
+// The service will populate the prayer adhan timings on a monthly basis, then loop
+// through all the prayers of the month (incrementally) to play the adhan at the specified
+// prayer time to the provided player.
+func (svc *Service) InitialisePrayeralarm(year int, month time.Month, city, country, offset string) {
+	log.Println("running prayeralarm service...")
+	go func() {
+		for {
+			monthCalendar := aladhan.GetMonthCalendar(city, country, offset, month, year)
+
+			svc.generatePrayers(monthCalendar)
+			svc.DisplayPrayerTimings(os.Stdout)
+			svc.executePrayers()
+
+			year, month, _ = time.Now().AddDate(0, 1, 0).Date()
+		}
+	}()
+}
+
+// generatePrayers extracts the monthly adhan timings from the calendar api response
+func (svc *Service) generatePrayers(monthCalendar aladhan.MonthlyAdhanCalenderResponse) {
 	svc.mutex.Lock()
 	defer svc.mutex.Unlock()
 
@@ -75,8 +98,8 @@ func (svc *Service) DisplayPrayerTimings(writer io.Writer) {
 	table.Render()
 }
 
-// ExecuteAdhan plays adhan based on adhan timings if execution of the respective adhan is set to true
-func (svc *Service) ExecutePrayers() {
+// executePrayers plays prayer adhan based on adhan timings if execution of the respective prayer is set to true
+func (svc *Service) executePrayers() {
 	// Play the adhan at the correct times - from current time
 	for _, p := range svc.Prayers {
 		timeTillNextAdhan := time.Until(p.Time)
