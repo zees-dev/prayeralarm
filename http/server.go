@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/zees-dev/prayeralarm/prayer"
 )
@@ -28,7 +29,7 @@ func NewServer(prayerSvc *prayer.Service) *server {
 
 func (s *server) Run(port uint) {
 	httpServer := &http.Server{
-		Handler:      loggedHandler(s.router),
+		Handler:      handlers.CORS()(loggedHandler(s.router)),
 		Addr:         fmt.Sprintf("127.0.0.1:%d", port),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
@@ -74,7 +75,7 @@ func (s *server) timingsHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(s.prayerSvc.Prayers)
+	json.NewEncoder(w).Encode(s.prayerSvc.DailyPrayerTimings)
 }
 
 func (s *server) timingsUpdateHandler(w http.ResponseWriter, r *http.Request) {
@@ -91,21 +92,24 @@ func (s *server) timingsUpdateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if intIndex > len(s.prayerSvc.Prayers) {
-		http.Error(w, "invalid index value provided", http.StatusBadRequest)
+	prayer, err := s.prayerSvc.ToggleAdhan(uint8(intIndex))
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error otggling adhan; err=%s", err), http.StatusBadRequest)
 		return
 	}
 
-	s.prayerSvc.ToggleAdhan(uint8(intIndex))
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(prayer)
 }
 
 func (s *server) timingsTurnOffHandler(w http.ResponseWriter, r *http.Request) {
 	s.prayerSvc.TurnOffAllAdhan()
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(s.prayerSvc.DailyPrayerTimings)
 }
 
 func (s *server) timingsTurnOnHandler(w http.ResponseWriter, r *http.Request) {
 	s.prayerSvc.TurnOnAllAdhan()
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(s.prayerSvc.DailyPrayerTimings)
 }
