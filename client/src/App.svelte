@@ -1,6 +1,6 @@
 
 <style>
-	main { max-width: 240px; padding: 0.5em; margin: 0 auto; }
+	main { padding: 0.5em; margin: 0 auto; }
 
 	h1 { text-align: center; color: #ff3e00; text-transform: uppercase; font-size: 4em; font-weight: 100; }
 
@@ -8,11 +8,11 @@
 
 	.subtitle { margin: 0em; text-align: center; grid-column: 3/5; }
 
-	table { width:100%; border: 2px solid; border-radius: 0.5em; padding: 0.5em; }
+	table { border: 2px solid; border-radius: 0.5em; padding: 0.5em; }
 
 	.button { height: min-content; margin: 0em; padding: 0.5rem; color: #FFF; grid-row: 2; }
-	.on { background: lime; border-color: green; grid-column: 4;}
-	.off { background: red; border-color: brown; grid-column: 5;}
+	.on { background: lime; border-color: green; grid-column: 5;}
+	.off { background: red; border-color: brown; grid-column: 6;}
 
 	@media (min-width: 640px) {
 		main {
@@ -86,22 +86,20 @@
 	{#await prayerPromise}
 		<p>...waiting</p>
 	{:then timings}
-		<div style="width:80%; margin:auto;">
-			<table>
-				<tr>
-					<th>Date</th>
-					<th>Adhan</th>
-					<th>Time</th>
-					<th>Status</th>
-				</tr>
-				{#each timings as timing}
-					<td colspan="4"><hr /></td>
-					{#each timing.prayers as prayer}
-						<Prayer {prayer} nextPrayerIndex={nextPrayerIndex}/>
-					{/each}
+		<table style="width: 100%;">
+			<tr>
+				<th>Date</th>
+				<th>Adhan</th>
+				<th>Time</th>
+				<th>Status</th>
+			</tr>
+			{#each timings as timing}
+				<td colspan="4"><hr /></td>
+				{#each timing.prayers as prayer}
+					<Prayer {prayer} nextPrayerIndex={nextPrayerIndex}/>
 				{/each}
-			</table>
-		</div>
+			{/each}
+		</table>
 	{:catch error}
 		<p style="color: red">{error.message}</p>
 	{/await}
