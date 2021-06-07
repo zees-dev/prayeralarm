@@ -1,11 +1,3 @@
-<script lang="ts">
-	export let name: string;
-</script>
-
-<main>
-	<h1>Hello {name}!</h1>
-	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
-</main>
 
 <style>
 	main {
@@ -28,3 +20,52 @@
 		}
 	}
 </style>
+
+<script lang="ts">
+	import Prayer from "./Prayer.svelte";
+
+	type Adhan = "Fajr" | "Dhuhr" | "Asr" | "Maghrib" | "Isha"
+	interface Timing {
+		play: boolean
+		time: string
+		type: Adhan
+	}
+
+	export let title: string;
+
+	let month: string;
+	async function getPrayerTimings() {
+		const res = await fetch("http://localhost:8080/api/timings");
+		// const res = await fetch("/api/timings");
+		const timings: Timing[] = await res.json();
+		// TODO calculate month
+		if (res.ok) {
+			return timings;
+		} else {
+			throw new Error("failed to get data");
+		}
+	}
+</script>
+
+<main>
+	<h1>{title}</h1>
+	<h3>{month}</h3>
+	{#await getPrayerTimings()}
+		<p>...waiting</p>
+	{:then timings}
+		<div style="width:80%; margin:auto;">
+			<table style="width:100%; border: 2px solid; border-radius: 0.5em;">
+				<tr>
+					<th>Adhan</th>
+					<th>Time</th>
+					<th>Status</th>
+				</tr>
+				{#each timings as timing}
+					<Prayer {timing} />
+				{/each}
+			</table>
+		</div>
+	{:catch error}
+		<p style="color: red">{error.message}</p>
+	{/await}
+</main>
