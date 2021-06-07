@@ -49,7 +49,7 @@ func main() {
 		cliFlags.port,
 	)
 
-	player := prayer.NewStdOutPlayer()
+	player := prayer.NewOmxPlayer()
 	adhanService := prayer.NewService(player)
 	adhanService.InitialisePrayeralarm(cliFlags.year, cliFlags.month, cliFlags.city, cliFlags.country, cliFlags.offset)
 

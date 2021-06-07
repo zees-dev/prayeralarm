@@ -41,7 +41,7 @@ func NewOmxPlayer() omxPlayer {
 func (op omxPlayer) Play(adhan aladhan.Adhan) error {
 	var filename string
 	switch adhan {
-	case "Fajr":
+	case aladhan.Fajr:
 		filename = "mp3/adhan-fajr.mp3"
 	default:
 		filename = "mp3/adhan-turkish.mp3"
@@ -71,7 +71,7 @@ func NewMp3Player() mp3Player {
 func (mp mp3Player) Play(adhan aladhan.Adhan) error {
 	var filename string
 	switch adhan {
-	case "Fajr":
+	case aladhan.Fajr:
 		filename = "mp3/adhan-fajr.mp3"
 	default:
 		filename = "mp3/adhan-turkish.mp3"
