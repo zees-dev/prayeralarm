@@ -62,5 +62,5 @@ func main() {
 	adhanService.InitialisePrayeralarm(cliFlags.year, cliFlags.month, cliFlags.city, cliFlags.country, cliFlags.offset)
 
 	server := server.NewServer(adhanService)
-	server.Run(*portPtr)
+	server.Run(cliFlags.port)
 }
