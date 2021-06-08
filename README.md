@@ -48,13 +48,27 @@ By default, offsets for all prayer times are set to **0**; i.e. **0,0,0,0,0**.
 
 Use the [Makefile](./Makefile) to test, build and run the project; alternatively manual instructions are defined below.
 
-#### Install dependencies
+### Install client dependencies
+
+```sh
+cd client
+npm install
+```
+
+### Build client
+
+```sh
+cd client
+npm run build
+```
+
+### Install server dependencies
 
 ```sh
 go mod download
 ```
 
-#### Build binary
+### Build server
 
 ```sh
 go build
@@ -62,7 +76,7 @@ go build
 
 Note: If using `native` `output`, then build with: `CGO_ENABLED=1 go build`
 
-#### Run binary - examples
+### Run server binary - examples
 
 **In foreground:**
 
