@@ -10,20 +10,21 @@ A cross-platform islamic prayer alarm.
 The prayer alarm binary will run the adhan prayer call (audio) based on prayer timings retrieved from the [Adhan API](https://aladhan.com/prayer-times-api).
 
 - Prayer timings are retrieved on a monthly basis (starting with current month by default).
-- Prayer calls (adhan audio) is played at the respective prayer times.
+- Prayer calls (adhan audio) are played at the respective prayer times.
 
-By default, the prayer call timings are set for:
+The prayer alarm admin dashboard (Web UI) can be viewed at port `8080`.
 
-- city = `Auckland`
-- country = `NewZealand`
+## Prayer alarm configuration parameters
 
-## Config overrides
-
-- `city`
-- `country`
-- `offsets` - more info below
-- `year`
-- `month` - numerical value between 1 and 12 (inclusive)
+| Name      | Description                                                   | Value                 |
+| --------- | ------------------------------------------------------------- | --------------------- |
+| `city`    | City for which to retrieve prayer calendar                    | `"Auckland"`          |
+| `country` | Country for which to retrieve prayer calendar                 | `"NewZealand"`        |
+| `offsets` | Prayer call offsets to fine-tune prayer adhan timings (negative numbers are supported)          | `"0,0,0,0,0"` |
+| `year`    | Year of prayer calendar                                       | `2021` (current year) |
+| `month`   | Month of prayer calendar                                      | `6` (current month)   |
+| `output`  | Output device to play adhan at prayer time; supported options are `stdout`, `native` and `omx`  | `omx`         |
+| `port`    | Port to serve admin UI dashboard (web server)                 | `8080`                |
 
 ### Prayer time offsets
 
@@ -36,8 +37,12 @@ By default, offsets for all prayer times are set to **0**; i.e. **0,0,0,0,0**.
 ### Pre-requisites
 
 - Golang (developed on v1.15)
-- Pre-requsites for sound player dependency [Oto](https://github.com/hajimehoshi/oto) - based on OS
-  - `CGO_ENABLED=1` - the project uses CGO (required by Oto dependency)
+- Pre-requisites for sound/output dependencies
+  - `output=native`
+    - [Oto](https://github.com/hajimehoshi/oto) - based on OS
+    - `Oto` requires `CGO_ENABLED=1`
+  - `output=omx`
+    - [Omxplayer](https://github.com/huceke/omxplayer) - A CLI application that can play audio files
 
 ### Steps
 
@@ -52,8 +57,10 @@ go mod download
 #### Build binary
 
 ```sh
-CGO_ENABLED=1 go build
+go build
 ```
+
+Note: If using `native` `output`, then build with: `CGO_ENABLED=1 go build`
 
 #### Run binary - examples
 
@@ -109,5 +116,5 @@ kill $(ps -ef | grep prayeralarm| cut -f4 -d" " | head -1)
 
 ## Roadmap
 
-- [ ] A web-ui to view prayer calendar - for current day and month
-- [ ] Ability to toggle on-off prayer call
+- [x] A web-ui to view prayer calendar - for current day and month
+- [x] Ability to toggle on-off prayer call
