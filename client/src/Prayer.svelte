@@ -1,4 +1,4 @@
-<script lang="typescript">
+<script lang="ts">
     // import { MONTHS, DAYS_OF_WEEK } from "./DateUtils";
     import type { PrayerCall } from "./models";
 
