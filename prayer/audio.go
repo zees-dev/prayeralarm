@@ -13,6 +13,27 @@ import (
 	"github.com/zees-dev/prayeralarm/aladhan"
 )
 
+type Output string
+
+const (
+	DEFAULT Output = "stdout"
+	OMX     Output = "omx"
+	NATIVE  Output = "native"
+)
+
+func GetPlayer(output Output) (Player, error) {
+	switch output {
+	case DEFAULT:
+		return NewStdOutPlayer(), nil
+	case OMX:
+		return NewOmxPlayer(), nil
+	case NATIVE:
+		return NewMp3Player(), nil
+	default:
+		return nil, fmt.Errorf("undefined output device '%s'", output)
+	}
+}
+
 type Player interface {
 	Play(adhan aladhan.Adhan) error
 }
