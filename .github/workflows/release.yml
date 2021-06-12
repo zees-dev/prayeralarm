@@ -2,7 +2,8 @@ name: Release
 
 on:
   release:
-    types: [created]
+    # types: [created]
+    types: [published]
 
 jobs:
   releases-matrix:
@@ -18,6 +19,7 @@ jobs:
             goos: darwin
     steps:
       - uses: actions/checkout@v2
+
       - uses: wangyoucao577/go-release-action@v1.18
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -27,3 +29,20 @@ jobs:
           project_path: "./"
           binary_name: "prayeralarm"
           extra_files: LICENSE README.md
+
+      - name: Get release
+        id: get_release
+        uses: bruceadams/get-release@v1.2.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Upload release binaries
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: ./
+          asset_name: prayeralarm
+          asset_content_type: application/octet-stream
+
