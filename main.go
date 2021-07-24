@@ -58,7 +58,8 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	adhanService := prayer.NewService(player)
+	prayerDatabase := prayer.NewPrayerDatabase()
+	adhanService := prayer.NewService(player, prayerDatabase)
 	adhanService.InitialisePrayeralarm(cliFlags.year, cliFlags.month, cliFlags.city, cliFlags.country, cliFlags.offset)
 
 	server := server.NewServer(adhanService)

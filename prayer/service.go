@@ -14,6 +14,14 @@ import (
 	"github.com/zees-dev/prayeralarm/aladhan"
 )
 
+type PrayerService interface {
+	GetPrayerTimings() []DailyPrayerTimings
+	DisplayPrayerTimings(writer io.Writer)
+	ToggleAdhan(index int) (*Prayer, error)
+	TurnOffAllAdhan()
+	TurnOnAllAdhan()
+}
+
 type Prayer struct {
 	Play  bool          `json:"play"`
 	Type  aladhan.Adhan `json:"type"`
@@ -27,16 +35,16 @@ type DailyPrayerTimings struct {
 }
 
 type Service struct {
-	mutex              sync.RWMutex
-	player             Player
-	DailyPrayerTimings []DailyPrayerTimings
+	mutex          sync.RWMutex
+	player         Player
+	prayerDatabase PrayerDatabase
 }
 
 // NewService returns new adhan service that utilizes player to output adhan audio
-func NewService(player Player) *Service {
+func NewService(player Player, prayerDatabase PrayerDatabase) *Service {
 	return &Service{
-		player:             player,
-		DailyPrayerTimings: []DailyPrayerTimings{},
+		player:         player,
+		prayerDatabase: prayerDatabase,
 	}
 }
 
@@ -50,9 +58,14 @@ func (svc *Service) InitialisePrayeralarm(year int, month time.Month, city, coun
 		for {
 			monthCalendar := aladhan.GetMonthCalendar(city, country, offset, month, year)
 
-			svc.generatePrayers(monthCalendar)
+			dailyPrayerTimings, err := svc.generatePrayers(monthCalendar)
+			if err != nil {
+				log.Fatalf("error generating prayer timings: %s", err.Error())
+			}
+			svc.prayerDatabase.SetTimings(dailyPrayerTimings)
+
 			svc.DisplayPrayerTimings(os.Stdout)
-			svc.executePrayers()
+			svc.executePrayers(dailyPrayerTimings)
 
 			year, month, _ = time.Now().AddDate(0, 1, 0).Date()
 		}
@@ -60,11 +73,11 @@ func (svc *Service) InitialisePrayeralarm(year int, month time.Month, city, coun
 }
 
 // generatePrayers extracts the monthly adhan timings from the calendar api response
-func (svc *Service) generatePrayers(monthCalendar aladhan.MonthlyAdhanCalenderResponse) {
+func (svc *Service) generatePrayers(monthCalendar aladhan.MonthlyAdhanCalenderResponse) ([]DailyPrayerTimings, error) {
 	svc.mutex.Lock()
 	defer svc.mutex.Unlock()
 
-	svc.DailyPrayerTimings = make([]DailyPrayerTimings, 0)
+	dailyPrayerTimings := make([]DailyPrayerTimings, 0)
 
 	// Get all adhan timings after current time for remaining days of the month
 	currentTime := time.Now()
@@ -83,21 +96,23 @@ func (svc *Service) generatePrayers(monthCalendar aladhan.MonthlyAdhanCalenderRe
 		if len(dailyPrayers) > 0 {
 			dateTime, err := getDateFromTimestamp(timings.Date.Timestamp)
 			if err != nil {
-				log.Fatalln(err)
+				return nil, err
 			}
-			svc.DailyPrayerTimings = append(svc.DailyPrayerTimings, DailyPrayerTimings{
+			dailyPrayerTimings = append(dailyPrayerTimings, DailyPrayerTimings{
 				Date:    dateTime,
 				Prayers: dailyPrayers,
 			})
 		}
 	}
 
-	for _, dpt := range svc.DailyPrayerTimings {
+	for _, dpt := range dailyPrayerTimings {
 		// Sort upcoming daily adhans by time
 		sort.Slice(dpt.Prayers[:], func(i, j int) bool {
 			return dpt.Prayers[i].Time.Before(dpt.Prayers[j].Time)
 		})
 	}
+
+	return dailyPrayerTimings, nil
 }
 
 // DisplayPrayerTimings renders upcoming calendar in ASCII table
@@ -107,7 +122,7 @@ func (svc *Service) DisplayPrayerTimings(writer io.Writer) {
 	table.SetHeader([]string{"Date", "Adhan", "Time", "Play"})
 	table.SetAutoMergeCells(true)
 	table.SetRowLine(true)
-	for _, dpt := range svc.DailyPrayerTimings {
+	for _, dpt := range svc.prayerDatabase.Timings() {
 		for _, p := range dpt.Prayers {
 			year, month, day := p.Time.Date()
 			dateStr := fmt.Sprintf("%s %d-%s-%d", p.Time.Weekday(), day, month, year)
@@ -124,9 +139,9 @@ func (svc *Service) DisplayPrayerTimings(writer io.Writer) {
 }
 
 // executePrayers plays prayer adhan based on adhan timings if execution of the respective prayer is set to true
-func (svc *Service) executePrayers() {
+func (svc *Service) executePrayers(dailyPrayerTimings []DailyPrayerTimings) {
 	// Play the adhan at the correct times - from current time
-	for _, dpt := range svc.DailyPrayerTimings {
+	for _, dpt := range dailyPrayerTimings {
 		for _, p := range dpt.Prayers {
 			timeTillNextAdhan := time.Until(p.Time)
 			log.Printf("Waiting %s for %s adhan...", timeTillNextAdhan, p.Type)
@@ -146,43 +161,51 @@ func (svc *Service) executePrayers() {
 	}
 }
 
+// GetPrayerTimings returns the prayer timings for the current day
+func (svc *Service) GetPrayerTimings() []DailyPrayerTimings {
+	return svc.prayerDatabase.Timings()
+}
+
 // TurnOffAllAdhan sets adhan executions for all adhan timings of the month to be muted
-func (svc *Service) TurnOffAllAdhan() []DailyPrayerTimings {
+func (svc *Service) TurnOffAllAdhan() {
 	svc.mutex.Lock()
 	defer svc.mutex.Unlock()
 
-	for _, dpt := range svc.DailyPrayerTimings {
+	for dptIndex, dpt := range svc.prayerDatabase.Timings() {
 		for i := range dpt.Prayers {
-			dpt.Prayers[i].Play = false
+			prayerTiming := dpt.Prayers[i]
+			prayerTiming.Play = false
+			svc.prayerDatabase.SetPrayerTime(dptIndex, i, prayerTiming)
 		}
 	}
-	return svc.DailyPrayerTimings
 }
 
 // TurnOnAllAdhan sets adhan executions for all adhan timings of the month to be played
-func (svc *Service) TurnOnAllAdhan() []DailyPrayerTimings {
+func (svc *Service) TurnOnAllAdhan() {
 	svc.mutex.Lock()
 	defer svc.mutex.Unlock()
 
-	for _, dpt := range svc.DailyPrayerTimings {
+	for dptIndex, dpt := range svc.prayerDatabase.Timings() {
 		for i := range dpt.Prayers {
-			dpt.Prayers[i].Play = true
+			prayerTiming := dpt.Prayers[i]
+			prayerTiming.Play = true
+			svc.prayerDatabase.SetPrayerTime(dptIndex, i, prayerTiming)
 		}
 	}
-
-	return svc.DailyPrayerTimings
 }
 
 // ToggleAdhan toggles a single adhan timings execution by matching its unix timestamp
-func (svc *Service) ToggleAdhan(index uint8) (*Prayer, error) {
+func (svc *Service) ToggleAdhan(index int) (*Prayer, error) {
 	svc.mutex.Lock()
 	defer svc.mutex.Unlock()
 
-	for _, dpt := range svc.DailyPrayerTimings {
-		for i := range dpt.Prayers {
-			if dpt.Prayers[i].Index == index {
-				dpt.Prayers[i].Play = !dpt.Prayers[i].Play
-				return &dpt.Prayers[i], nil
+	for dptIndex, dpt := range svc.prayerDatabase.Timings() {
+		for prayerIndex := range dpt.Prayers {
+			if dpt.Prayers[prayerIndex].Index == uint8(index) {
+				prayerTiming := dpt.Prayers[prayerIndex]
+				prayerTiming.Play = !prayerTiming.Play
+				svc.prayerDatabase.SetPrayerTime(dptIndex, prayerIndex, prayerTiming)
+				return &prayerTiming, nil
 			}
 		}
 	}

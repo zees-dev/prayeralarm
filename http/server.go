@@ -15,10 +15,10 @@ import (
 
 type server struct {
 	router    *mux.Router
-	prayerSvc *prayer.Service
+	prayerSvc prayer.PrayerService
 }
 
-func NewServer(prayerSvc *prayer.Service) *server {
+func NewServer(prayerSvc prayer.PrayerService) *server {
 	s := &server{
 		router:    mux.NewRouter(),
 		prayerSvc: prayerSvc,
@@ -75,7 +75,7 @@ func (s *server) timingsHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(s.prayerSvc.DailyPrayerTimings)
+	json.NewEncoder(w).Encode(s.prayerSvc.GetPrayerTimings())
 }
 
 func (s *server) timingsUpdateHandler(w http.ResponseWriter, r *http.Request) {
@@ -92,9 +92,9 @@ func (s *server) timingsUpdateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	prayer, err := s.prayerSvc.ToggleAdhan(uint8(intIndex))
+	prayer, err := s.prayerSvc.ToggleAdhan(intIndex)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("error otggling adhan; err=%s", err), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("error toggling adhan; err=%s", err), http.StatusBadRequest)
 		return
 	}
 
@@ -105,11 +105,11 @@ func (s *server) timingsUpdateHandler(w http.ResponseWriter, r *http.Request) {
 func (s *server) timingsTurnOffHandler(w http.ResponseWriter, r *http.Request) {
 	s.prayerSvc.TurnOffAllAdhan()
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(s.prayerSvc.DailyPrayerTimings)
+	json.NewEncoder(w).Encode(s.prayerSvc.GetPrayerTimings())
 }
 
 func (s *server) timingsTurnOnHandler(w http.ResponseWriter, r *http.Request) {
 	s.prayerSvc.TurnOnAllAdhan()
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(s.prayerSvc.DailyPrayerTimings)
+	json.NewEncoder(w).Encode(s.prayerSvc.GetPrayerTimings())
 }
