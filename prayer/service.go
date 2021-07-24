@@ -34,6 +34,8 @@ type DailyPrayerTimings struct {
 	Prayers []Prayer  `json:"prayers"`
 }
 
+// type DailyPrayerTimings map[uint8][]Prayer
+
 type Service struct {
 	mutex          sync.RWMutex
 	player         Player
@@ -54,22 +56,20 @@ func NewService(player Player, prayerDatabase PrayerDatabase) *Service {
 // prayer time to the provided player.
 func (svc *Service) InitialisePrayeralarm(year int, month time.Month, city, country, offset string) {
 	log.Println("running prayeralarm service...")
-	go func() {
-		for {
-			monthCalendar := aladhan.GetMonthCalendar(city, country, offset, month, year)
+	for {
+		monthCalendar := aladhan.GetMonthCalendar(city, country, offset, month, year)
 
-			dailyPrayerTimings, err := svc.generatePrayers(monthCalendar)
-			if err != nil {
-				log.Fatalf("error generating prayer timings: %s", err.Error())
-			}
-			svc.prayerDatabase.SetTimings(dailyPrayerTimings)
-
-			svc.DisplayPrayerTimings(os.Stdout)
-			svc.executePrayers(dailyPrayerTimings)
-
-			year, month, _ = time.Now().AddDate(0, 1, 0).Date()
+		dailyPrayerTimings, err := svc.generatePrayers(monthCalendar)
+		if err != nil {
+			log.Fatalf("error generating prayer timings: %s", err.Error())
 		}
-	}()
+		svc.prayerDatabase.SetTimings(dailyPrayerTimings)
+
+		svc.DisplayPrayerTimings(os.Stdout)
+		svc.executePrayers(dailyPrayerTimings)
+
+		year, month, _ = time.Now().AddDate(0, 1, 0).Date()
+	}
 }
 
 // generatePrayers extracts the monthly adhan timings from the calendar api response

@@ -60,7 +60,7 @@ func main() {
 
 	prayerDatabase := prayer.NewPrayerDatabase()
 	adhanService := prayer.NewService(player, prayerDatabase)
-	adhanService.InitialisePrayeralarm(cliFlags.year, cliFlags.month, cliFlags.city, cliFlags.country, cliFlags.offset)
+	go adhanService.InitialisePrayeralarm(cliFlags.year, cliFlags.month, cliFlags.city, cliFlags.country, cliFlags.offset)
 
 	server := server.NewServer(adhanService)
 	server.Run(cliFlags.port)
