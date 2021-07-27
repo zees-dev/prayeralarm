@@ -17,7 +17,7 @@ import (
 
 type PrayerService interface {
 	GetPrayerTimings() []DailyPrayerTimings
-	DisplayPrayerTimings(writer io.Writer)
+	DisplayPrayerTimings(writer io.Writer, dailyPrayerTimings []DailyPrayerTimings)
 	ToggleAdhan(index int) (*Prayer, error)
 	TurnOffAllAdhan()
 	TurnOnAllAdhan()
@@ -60,6 +60,9 @@ func NewService(player Player, prayerDatabase PrayerDatabase) *Service {
 func (svc *Service) InitialisePrayeralarm(year int, month time.Month, city, country, offset string) {
 	log.Println("running prayeralarm service...")
 	for {
+		// create prayer timings channel for max possible prayers in a month
+		prayerCh := make(chan Prayer, 31*5)
+
 		monthCalendar := aladhan.GetMonthCalendar(city, country, offset, month, year)
 
 		dailyPrayerTimings, err := svc.generatePrayers(monthCalendar)
@@ -68,12 +71,16 @@ func (svc *Service) InitialisePrayeralarm(year int, month time.Month, city, coun
 		}
 		svc.prayerDatabase.SetTimings(dailyPrayerTimings)
 
-		svc.DisplayPrayerTimings(os.Stdout)
+		svc.DisplayPrayerTimings(os.Stdout, dailyPrayerTimings)
 
-		err = svc.executePrayers()
-		if err != nil && err != ErrNoPrayerCall {
-			log.Fatalf("error executing prayers: %s", err.Error())
+		svc.populatePrayerTimings(prayerCh, dailyPrayerTimings)
+
+		err = svc.playPrayerCalls(prayerCh)
+		if err != nil {
+			log.Fatalf("error playing prayer calls: %s", err.Error())
 		}
+
+		close(prayerCh)
 
 		year, month, _ = time.Now().AddDate(0, 1, 0).Date()
 	}
@@ -124,12 +131,12 @@ func (svc *Service) generatePrayers(monthCalendar aladhan.MonthlyAdhanCalenderRe
 
 // DisplayPrayerTimings renders upcoming calendar in ASCII table
 // https://github.com/olekukonko/tablewriter#example-6----identical-cells-merging
-func (svc *Service) DisplayPrayerTimings(writer io.Writer) {
+func (svc *Service) DisplayPrayerTimings(writer io.Writer, dailyPrayerTimings []DailyPrayerTimings) {
 	table := tablewriter.NewWriter(writer)
 	table.SetHeader([]string{"Date", "Adhan", "Time", "Play"})
 	table.SetAutoMergeCells(true)
 	table.SetRowLine(true)
-	for _, dpt := range svc.prayerDatabase.Timings() {
+	for _, dpt := range dailyPrayerTimings {
 		for _, p := range dpt.Prayers {
 			year, month, day := p.Time.Date()
 			dateStr := fmt.Sprintf("%s %d-%s-%d", p.Time.Weekday(), day, month, year)
@@ -145,57 +152,48 @@ func (svc *Service) DisplayPrayerTimings(writer io.Writer) {
 	table.Render()
 }
 
-// executePrayers plays prayer adhan based on adhan timings if execution of the respective prayer is set to true
-// Play the adhan at the correct times - from current time
-func (svc *Service) executePrayers() error {
-	p, err := svc.getNextPrayerCall()
-	if err != nil {
-		return err
-	}
-
-	timeTillNextAdhan := time.Until(p.Time)
-
-	log.Printf(
-		"Adhan will play at %s, waiting %s for %s adhan...",
-		p.Time,
-		timeTillNextAdhan,
-		p.Type,
-	)
-
-	time.Sleep(timeTillNextAdhan)
-
-	p, err = svc.prayerDatabase.GetPrayerByTime(p.Time)
-	if err != nil {
-		return err
-	}
-
-	// Only play adhan if its set to execute
-	if p.Play {
-		log.Printf("Playing %s adhan at %s...", p.Type, p.Time)
-		if err := svc.player.Play(p.Type); err != nil {
-			return err
-		}
-	} else {
-		log.Printf("Skipping %s adhan at %s since execution is set to false", p.Type, p.Time)
-	}
-
-	_, err = svc.getNextPrayerCall()
-	if err != ErrNoPrayerCall {
-		return svc.executePrayers()
-	}
-
-	return err
-}
-
-func (svc *Service) getNextPrayerCall() (Prayer, error) {
-	for _, dpt := range svc.prayerDatabase.Timings() {
+// populatePrayerTimings populates channel with upcaoming prayer times for the month
+func (svc *Service) populatePrayerTimings(prayerCh chan Prayer, dailyPrayerTimings []DailyPrayerTimings) {
+	for _, dpt := range dailyPrayerTimings {
 		for _, p := range dpt.Prayers {
-			if time.Until(p.Time) > time.Duration(0) {
-				return p, nil
+			if p.Time.After(time.Now()) {
+				prayerCh <- p
 			}
 		}
 	}
-	return Prayer{}, ErrNoPrayerCall
+}
+
+// playPrayerCalls plays the prayer calls for the month
+func (svc *Service) playPrayerCalls(prayerCh chan Prayer) error {
+	for p := range prayerCh {
+		timeTillNextAdhan := time.Until(p.Time)
+
+		log.Printf(
+			"Adhan will play at %s, waiting %s for %s adhan...",
+			p.Time,
+			timeTillNextAdhan,
+			p.Type,
+		)
+
+		time.Sleep(timeTillNextAdhan)
+
+		dbP, err := svc.prayerDatabase.GetPrayerByTime(p.Time)
+		if err != nil {
+			return err
+		}
+
+		// Only play adhan if its set to execute
+		if dbP.Play {
+			log.Printf("Playing %s adhan at %s...", p.Type, p.Time)
+			if err := svc.player.Play(p.Type); err != nil {
+				return err
+			}
+		} else {
+			log.Printf("Skipping %s adhan at %s since execution is set to false", p.Type, p.Time)
+		}
+	}
+
+	return nil
 }
 
 // GetPrayerTimings returns the prayer timings for the current day
