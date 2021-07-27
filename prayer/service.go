@@ -1,6 +1,7 @@
 package prayer
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/zees-dev/prayeralarm/aladhan"
+	"golang.org/x/sync/errgroup"
 )
 
 type PrayerService interface {
@@ -79,8 +81,6 @@ func (svc *Service) InitialisePrayeralarm(year int, month time.Month, city, coun
 		if err != nil {
 			log.Fatalf("error playing prayer calls: %s", err.Error())
 		}
-
-		close(prayerCh)
 
 		year, month, _ = time.Now().AddDate(0, 1, 0).Date()
 	}
@@ -165,35 +165,47 @@ func (svc *Service) populatePrayerTimings(prayerCh chan Prayer, dailyPrayerTimin
 
 // playPrayerCalls plays the prayer calls for the month
 func (svc *Service) playPrayerCalls(prayerCh chan Prayer) error {
-	for p := range prayerCh {
-		timeTillNextAdhan := time.Until(p.Time)
+	errs, _ := errgroup.WithContext(context.TODO())
+	var wg sync.WaitGroup
 
-		log.Printf(
-			"Adhan will play at %s, waiting %s for %s adhan...",
-			p.Time,
-			timeTillNextAdhan,
-			p.Type,
-		)
+	wg.Add(1)
 
-		time.Sleep(timeTillNextAdhan)
+	errs.Go(func() error {
+		defer wg.Done()
+		for p := range prayerCh {
+			timeTillNextAdhan := time.Until(p.Time)
 
-		dbP, err := svc.prayerDatabase.GetPrayerByTime(p.Time)
-		if err != nil {
-			return err
-		}
+			log.Printf(
+				"Adhan will play at %s, waiting %s for %s adhan...",
+				p.Time,
+				timeTillNextAdhan,
+				p.Type,
+			)
 
-		// Only play adhan if its set to execute
-		if dbP.Play {
-			log.Printf("Playing %s adhan at %s...", p.Type, p.Time)
-			if err := svc.player.Play(p.Type); err != nil {
+			time.Sleep(timeTillNextAdhan)
+
+			dbP, err := svc.prayerDatabase.GetPrayerByTime(p.Time)
+			if err != nil {
 				return err
 			}
-		} else {
-			log.Printf("Skipping %s adhan at %s since execution is set to false", p.Type, p.Time)
-		}
-	}
 
-	return nil
+			// Only play adhan if its set to execute
+			if dbP.Play {
+				log.Printf("Playing %s adhan at %s...", p.Type, p.Time)
+				if err := svc.player.Play(p.Type); err != nil {
+					return err
+				}
+			} else {
+				log.Printf("Skipping %s adhan at %s since execution is set to false", p.Type, p.Time)
+			}
+		}
+		return nil
+	})
+
+	close(prayerCh)
+	wg.Wait()
+
+	return errs.Wait()
 }
 
 // GetPrayerTimings returns the prayer timings for the current day
