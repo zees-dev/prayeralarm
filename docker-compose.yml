@@ -3,6 +3,7 @@ version: '3'
 services:
   prayeralarm:
     image: zeeshans/prayeralarm
+    container_name: prayeralarm
     platform: linux/arm/v7
     restart: unless-stopped
     devices:
