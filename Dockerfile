@@ -22,8 +22,8 @@ RUN apk add --update --no-cache omxplayer tini tzdata
 WORKDIR /app
 
 COPY --from=builder /go/src/app/app /app/app
-COPY --from=builder /go/src/app/mp3 /app/mp3
-COPY --from=builder /go/src/app/client/public /app/client/public
+COPY --from=builder /go/src/app/mp3/ /app/mp3/
+COPY --from=builder /go/src/app/client/public/ /app/client/public/
 
 ENTRYPOINT ["/sbin/tini", "--", "/app/app"]
 CMD ["@"]
