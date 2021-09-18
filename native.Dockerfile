@@ -13,10 +13,9 @@ RUN go mod download
 RUN CGO_ENABLED=1 go build -o /go/src/app/app
 
 
-FROM alpine:latest
+FROM alpine:3.12.3
 
-RUN apk update
-RUN apk add --no-cache omxplayer tini tzdata
+RUN apk update && apk add --no-cache tzdata pulseaudio tini
 
 WORKDIR /app
 
