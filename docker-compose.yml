@@ -5,8 +5,8 @@ services:
     image: zeeshans/prayeralarm
     platform: linux/arm/v7
     restart: unless-stopped
-    # devices:
-    #   - /dev/snd:/dev/snd
-    #   - /dev/vchiq:/dev/vchiq
+    devices:
+      - /dev/snd:/dev/snd
+      - /dev/vchiq:/dev/vchiq
     ports:
       - 8080:8080
